@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BAC Quest - RPG de Révisions</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            text-shadow: 0 0 20px #00ff88;
+            animation: glow 2s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ff88; }
+            to { text-shadow: 0 0 30px #00ff88, 0 0 40px #00ff88; }
+        }
+        
+        .player-stats {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-bar {
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #00ff88;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+        
+        .countdown {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ff6b6b;
+            margin: 10px 0;
+            font-weight: 700;
+        }
+        
+        .date-selector {
+            display: flex;
+            justify-content: flex-start;
+            margin: 20px 0;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .date-btn {
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4ecdc4;
+            border-radius: 15px;
+            color: #4ecdc4;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .date-btn.active {
+            background: #4ecdc4;
+            color: #000;
+            transform: scale(1.1);
+        }
+        
+        .date-btn.today {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+        
+        .mission-card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4ecdc4;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .mission-card:active {
+            transform: scale(0.98);
+        }
+        
+        .mission-card.completed {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .mission-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #4ecdc4;
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        .mission-xp {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .mission-details {
+            color: #b0b0b0;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            font-size: 0.85rem;
+        }
+        
+        .complete-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .complete-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .complete-btn:disabled {
+            background: #333;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .achievements {
+            background: rgba(255, 107, 107, 0.1);
+            border: 2px solid #ff6b6b;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .achievements h3 {
+            margin-bottom: 15px;
+            text-align: center;
+            color: #ff6b6b;
+        }
+        
+        .achievement {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        .achievement.unlocked {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+        }
+        
+        .achievement-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #00ff88, #4ecdc4);
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: #000;
+            font-weight: 700;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 200px;
+            font-size: 0.9rem;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .debug-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 BAC QUEST 🏆</h1>
+            <div class="countdown" id="countdown"></div>
+        </div>
+        
+        <div class="player-stats">
+            <div class="stat-bar">
+                <div class="stat-label">
+                    <span>🏆 Niveau</span>
+                    <span id="level">1</span>
+                </div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">
+                    <span>⚡ XP</span>
+                    <span><span id="xp">0</span>/<span id="xp-needed">100</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="xp-bar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">
+                    <span>📚 Progress BAC</span>
+                    <span id="bac-progress">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="bac-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="date-selector" id="date-selector"></div>
+        
+        <div id="missions-container"></div>
+        
+        <div class="achievements">
+            <h3>🏆 ACHIEVEMENTS</h3>
+            <div id="achievements-list"></div>
+        </div>
+        
+        <div class="debug-info" id="debug-info"></div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Configuration des données - TON EMPLOI DU TEMPS COMPLET
+        const schedule = {
+            // Aujourd'hui 22 mai - Test
+            "2024-05-22": [
+                {title: "🔬 Mission Physique", subject: "Physique", time: "14h-17h", location: "Révisions", xp: 60, details: "Session de rattrapage - Focus sur les formules importantes"}
+            ],
+            
+            // 23 mai - Jeudi normal
+            "2024-05-23": [
+                {title: "🎯 Mission Grand Oral", subject: "Grand Oral", time: "12h-13h", location: "CDI", xp: 30, details: "Réviser et répéter ton exposé"},
+                {title: "🎯 Quest Grand Oral", subject: "Grand Oral", time: "15h-17h", location: "BU Richter", xp: 60, details: "Peaufiner et finaliser ton grand oral"}
+            ],
+            
+            // 24 mai - Vendredi normal  
+            "2024-05-24": [
+                {title: "🔬 Boss Physique", subject: "Physique", time: "14h-16h", location: "Mediatheque", xp: 60, details: "Session intensive de physique"}
+            ],
+            
+            // 27 mai - Mardi exception
+            "2024-05-27": [
+                {title: "🔬 Mission Physique", subject: "Physique", time: "10h-12h", location: "Mediatheque", xp: 50, details: "Première moitié - Révisions physique"},
+                {title: "💻 Mission I2D", subject: "I2D", time: "12h-14h", location: "Mediatheque", xp: 50, details: "Deuxième moitié - Révisions I2D"}
+            ],
+            
+            // 28 mai - Mercredi normal
+            "2024-05-28": [
+                {title: "🎯 Quest Grand Oral", subject: "Grand Oral", time: "12h-13h", location: "Cantine", xp: 30, details: "Répétition rapide pendant le repas"},
+                {title: "🎯 Master Grand Oral", subject: "Grand Oral", time: "15h-17h", location: "BU Richter", xp: 60, details: "Perfectionnement final du grand oral"}
+            ],
+            
+            // 29 mai - Jeudi FÉRIÉ
+            "2024-05-29": [
+                {title: "🔬 BOSS BATTLE Physique", subject: "Physique", time: "14h-17h", location: "Chez toi", xp: 90, details: "🎉 JOUR FÉRIÉ - Marathon physique de 3h !"}
+            ],
+            
+            // 30 mai - Vendredi FÉRIÉ  
+            "2024-05-30": [
+                {title: "💻 FINAL BOSS I2D", subject: "I2D", time: "14h-17h", location: "Chez toi", xp: 90, details: "🎉 JOUR FÉRIÉ - Session marathon I2D !"}
+            ],
+            
+            // 31 mai - Samedi REPOS
+            "2024-05-31": [
+                {title: "🎮 JOUR DE REPOS", subject: "Repos", time: "Toute la journée", location: "Détente", xp: 50, details: "🛌 Récupère tes forces ! Gaming autorisé"}
+            ],
+            
+            // 1er juin - Dimanche normal
+            "2024-06-01": [
+                {title: "🔬 Sunday Physics", subject: "Physique", time: "14h-17h", location: "Révisions", xp: 90, details: "Session dominicale de 3h - Tu assures !"}
+            ],
+            
+            // 2 juin - Lundi exception
+            "2024-06-02": [
+                {title: "🎯 Warm-up Grand Oral", subject: "Grand Oral", time: "8h-10h", location: "En cours", xp: 40, details: "Échauffement pendant le cours I2D"},
+                {title: "🎯 Power-up Grand Oral", subject: "Grand Oral", time: "10h-11h", location: "Trou planning", xp: 35, details: "Session bonus d'1h dans ton trou !"},
+                {title: "🎯 MEGA Grand Oral", subject: "Grand Oral", time: "13h-16h", location: "Révisions", xp: 100, details: "🚀 DERNIÈRE LIGNE DROITE - 3h de maîtrise totale !"}
+            ],
+            
+            // 3 juin - Mardi normal
+            "2024-06-03": [
+                {title: "💻 Quest I2D", subject: "I2D", time: "12h-13h", location: "Mediatheque", xp: 35, details: "Moitié I2D - Révisions ciblées"},
+                {title: "🔬 Quest Physique", subject: "Physique", time: "13h-14h", location: "Mediatheque", xp: 35, details: "Moitié Physique - Derniers réglages"}
+            ],
+            
+            // 4 juin - Mercredi normal
+            "2024-06-04": [
+                {title: "🔬 Wednesday Physics", subject: "Physique", time: "14h-16h", location: "Mediatheque", xp: 60, details: "Session mercredi - Concentration max"}
+            ],
+            
+            // 5 juin - Jeudi normal
+            "2024-06-05": [
+                {title: "🎯 Grand Oral Prep", subject: "Grand Oral", time: "8h-10h", location: "Cours I2D", xp: 40, details: "Intégrer le grand oral pendant le cours"}
+            ],
+            
+            // 6 juin - Vendredi normal
+            "2024-06-06": [
+                {title: "🔬 Physics Sprint", subject: "Physique", time: "15h-16h", location: "Révisions", xp: 35, details: "Session courte mais intense"},
+                {title: "💻 I2D Final", subject: "I2D", time: "17h-18h", location: "Mediatheque", xp: 35, details: "Derniers ajustements I2D"}
+            ],
+            
+            // 7 juin - Samedi REPOS
+            "2024-06-07": [
+                {title: "🎮 REPOS MÉRITÉ", subject: "Repos", time: "Toute la journée", location: "Détente", xp: 50, details: "🛌 Weekend de récup - Tu l'as mérité !"}
+            ],
+            
+            // 8 juin - Dimanche normal
+            "2024-06-08": [
+                {title: "🔬 SUNDAY ULTIMATE", subject: "Physique", time: "14h-17h", location: "Révisions", xp: 100, details: "💪 DIMANCHE POWER - Session de 3h !"}
+            ],
+            
+            // 9 juin - Lundi LIBRE
+            "2024-06-09": [
+                {title: "🚀 JOUR LIBRE TOTAL", subject: "Repos", time: "Toute la journée", location: "Partout", xp: 100, details: "🎉 JOURNÉE LIBRE - Récupère tes forces pour le sprint final !"}
+            ],
+            
+            // 10 juin - Mardi normal
+            "2024-06-10": [
+                {title: "💻 I2D Check", subject: "I2D", time: "12h-13h", location: "Mediatheque", xp: 35, details: "Vérifications I2D"},
+                {title: "🔬 Physics Check", subject: "Physique", time: "13h-14h", location: "Mediatheque", xp: 35, details: "Vérifications Physique"}
+            ],
+            
+            // 11 juin - Mercredi normal
+            "2024-06-11": [
+                {title: "🔬 Pre-Final Physics", subject: "Physique", time: "14h-16h", location: "Mediatheque", xp: 60, details: "Avant-dernière session physique"}
+            ],
+            
+            // 12 juin - Jeudi normal
+            "2024-06-12": [
+                {title: "🎯 Last Grand Oral", subject: "Grand Oral", time: "8h-10h", location: "Cours I2D", xp: 40, details: "Dernière préparation grand oral"}
+            ],
+            
+            // 13 juin - Vendredi LIBRE
+            "2024-06-13": [
+                {title: "🏆 JOUR LIBRE FINAL", subject: "Repos", time: "Toute la journée", location: "Détente totale", xp: 150, details: "🎉 DERNIER JOUR LIBRE - Tu es prêt(e) ! Profite bien !"}
+            ],
+            
+            // 14 juin - Samedi avant BAC
+            "2024-06-14": [
+                {title: "🔬 Final Physics Review", subject: "Physique", time: "15h-16h", location: "Révisions", xp: 50, details: "Ultime révision avant l'épreuve de demain"},
+                {title: "💻 Final I2D Review", subject: "I2D", time: "17h-18h", location: "Mediatheque", xp: 50, details: "Derniers réglages I2D"}
+            ],
+            
+            // 15 juin - Dimanche veille du BAC
+            "2024-06-15": [
+                {title: "🏆 ULTIMATE PREPARATION", subject: "Physique", time: "14h-17h", location: "Révisions", xp: 200, details: "🔥 DERNIÈRE SESSION - Demain tu déchires tout ! TU ES PRÊT(E) ! 💪⚡"}
+            ],
+            
+            // 16 juin - JOUR J
+            "2024-06-16": [
+                {title: "🏆 BAC - JOUR J", subject: "BAC", time: "Épreuves", location: "Centre d'examen", xp: 1000, details: "🎉 C'EST LE JOUR J ! Tu vas tout déchirer ! Tous tes efforts vont payer ! 🚀🏆"}
+            ]
+        };
+
+        const achievements = [
+            {id: "first_mission", name: "Premier Pas", icon: "🚀", description: "Compléter ta première mission", unlocked: false},
+            {id: "physique_master", name: "Maître Physicien", icon: "🔬", description: "Compléter 5 missions de physique", unlocked: false, count: 0, target: 5},
+            {id: "i2d_expert", name: "Expert I2D", icon: "💻", description: "Compléter 5 missions d'I2D", unlocked: false, count: 0, target: 5},
+            {id: "grand_oral_pro", name: "Pro du Grand Oral", icon: "🎯", description: "Compléter 5 missions de Grand Oral", unlocked: false, count: 0, target: 5},
+            {id: "level_5", name: "Niveau 5", icon: "⭐", description: "Atteindre le niveau 5", unlocked: false},
+            {id: "streak_7", name: "Série de 7", icon: "🔥", description: "Compléter des missions 7 jours consécutifs", unlocked: false},
+            {id: "weekend_warrior", name: "Guerrier du Weekend", icon: "💪", description: "Compléter toutes les sessions du dimanche", unlocked: false},
+            {id: "bac_ready", name: "Prêt pour le BAC", icon: "🏆", description: "Compléter toutes les missions", unlocked: false}
+        ];
+
+        // Variables globales
+        let playerData = {
+            level: 1,
+            xp: 0,
+            xpNeeded: 100,
+            completedMissions: [],
+            achievements: JSON.parse(JSON.stringify(achievements)),
+            streak: 0,
+            lastCompletionDate: null
+        };
+
+        // Fonction de sauvegarde sécurisée
+        function loadData() {
+            try {
+                if (typeof Storage !== "undefined" && localStorage) {
+                    playerData.completedMissions = JSON.parse(localStorage.getItem('bac-quest-completed') || '[]');
+                    playerData.achievements = JSON.parse(localStorage.getItem('bac-quest-achievements') || JSON.stringify(achievements));
+                    playerData.streak = parseInt(localStorage.getItem('bac-quest-streak') || '0');
+                    playerData.lastCompletionDate = localStorage.getItem('bac-quest-last-date') || null;
+                }
+            } catch (e) {
+                console.log('localStorage non disponible, utilisation de la mémoire');
+                // Utilise les valeurs par défaut déjà définies
+            }
+        }
+
+        let currentDate = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+
+        // Fonctions principales
+        function updateCountdown() {
+            const bacDate = new Date('2024-06-16T08:00:00');
+            const now = new Date();
+            const diff = bacDate - now;
+            
+            if (diff > 0) {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('countdown').textContent = `⏰ J-${days} (${hours}h restantes)`;
+            } else {
+                document.getElementById('countdown').textContent = '🎉 C\'EST LE JOUR J ! 🎉';
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('level').textContent = playerData.level;
+            document.getElementById('xp').textContent = playerData.xp;
+            document.getElementById('xp-needed').textContent = playerData.xpNeeded;
+            
+            const xpPercent = Math.min((playerData.xp / playerData.xpNeeded) * 100, 100);
+            document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+            
+            // Calculer progression BAC
+            const totalMissions = Object.values(schedule).flat().length;
+            const completedCount = playerData.completedMissions.length;
+            const bacProgress = Math.round((completedCount / totalMissions) * 100);
+            
+            document.getElementById('bac-progress').textContent = `${bacProgress}%`;
+            document.getElementById('bac-bar').style.width = `${bacProgress}%`;
+        }
+
+        function checkLevelUp() {
+            while (playerData.xp >= playerData.xpNeeded) {
+                playerData.xp -= playerData.xpNeeded;
+                playerData.level++;
+                playerData.xpNeeded = Math.floor(playerData.xpNeeded * 1.2);
+                
+                showNotification(`🎉 NIVEAU ${playerData.level} ! 🎉`);
+                
+                if (playerData.level === 5) {
+                    unlockAchievement('level_5');
+                }
+            }
+        }
+
+        function unlockAchievement(achievementId) {
+            const achievement = playerData.achievements.find(a => a.id === achievementId);
+            if (achievement && !achievement.unlocked) {
+                achievement.unlocked = true;
+                showNotification(`🏆 ${achievement.name} !`);
+                updateAchievements();
+                saveData();
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function completeMission(missionId) {
+            if (playerData.completedMissions.includes(missionId)) return;
+            
+            playerData.completedMissions.push(missionId);
+            
+            // Trouver la mission pour récupérer l'XP
+            let mission = null;
+            for (const date in schedule) {
+                const found = schedule[date].find(m => 
+                    `${m.title}-${m.time}-${date}` === missionId
+                );
+                if (found) {
+                    mission = found;
+                    break;
+                }
+            }
+            
+            if (mission) {
+                playerData.xp += mission.xp;
+                showNotification(`+${mission.xp} XP ! 🎮`);
+                
+                // Vérifier les achievements
+                checkMissionAchievements(mission.subject);
+                checkStreak();
+                
+                if (playerData.completedMissions.length === 1) {
+                    unlockAchievement('first_mission');
+                }
+                
+                // Vérifier si toutes les missions sont complétées
+                const totalMissions = Object.values(schedule).flat().length;
+                if (playerData.completedMissions.length === totalMissions) {
+                    unlockAchievement('bac_ready');
+                }
+            }
+            
+            checkLevelUp();
+            updateStats();
+            renderMissions();
+            saveData();
+        }
+
+        function checkMissionAchievements(subject) {
+            const subjectMap = {
+                'Physique': 'physique_master',
+                'I2D': 'i2d_expert',
+                'Grand Oral': 'grand_oral_pro'
+            };
+            
+            const achievementId = subjectMap[subject];
+            if (achievementId) {
+                const achievement = playerData.achievements.find(a => a.id === achievementId);
+                if (achievement && !achievement.unlocked) {
+                    achievement.count = (achievement.count || 0) + 1;
+                    if (achievement.count >= achievement.target) {
+                        unlockAchievement(achievementId);
+                    }
+                }
+            }
+        }
+
+        function checkStreak() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            
+            if (playerData.lastCompletionDate === yesterday) {
+                playerData.streak++;
+            } else if (playerData.lastCompletionDate !== todayStr) {
+                playerData.streak = 1;
+            }
+            
+            playerData.lastCompletionDate = todayStr;
+            
+            if (playerData.streak >= 7) {
+                unlockAchievement('streak_7');
+            }
+        }
+
+        function renderDateSelector() {
+            const container = document.getElementById('date-selector');
+            const dates = Object.keys(schedule).sort();
+            
+            container.innerHTML = dates.map(date => {
+                const dateObj = new Date(date + 'T12:00:00');
+                const day = dateObj.getDate();
+                const month = dateObj.getMonth() + 1;
+                
+                let classes = 'date-btn';
+                if (date === currentDate) classes += ' active';
+                if (date === today) classes += ' today';
+                
+                return `<button class="${classes}" onclick="selectDate('${date}')">${day}/${month}</button>`;
+            }).join('');
+        }
+
+        function selectDate(date) {
+            currentDate = date;
+            renderDateSelector();
+            renderMissions();
+        }
+
+        function renderMissions() {
+            const container = document.getElementById('missions-container');
+            const missions = schedule[currentDate] || [];
+            
+            if (missions.length === 0) {
+                container.innerHTML = `
+                    <div class="mission-card">
+                        <div class="mission-title">🎮 Pas de missions aujourd'hui</div>
+                        <div class="mission-details">Profite de ta journée libre !</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = missions.map(mission => {
+                const missionId = `${mission.title}-${mission.time}-${currentDate}`;
+                const isCompleted = playerData.completedMissions.includes(missionId);
+                
+                return `
+                    <div class="mission-card ${isCompleted ? 'completed' : ''}">
+                        <div class="mission-header">
+                            <div class="mission-title">${mission.title}</div>
+                            <div class="mission-xp">+${mission.xp} XP</div>
+                        </div>
+                        <div class="mission-details">
+                            📍 ${mission.location}<br>
+                            ⏰ ${mission.time}<br>
+                            📝 ${mission.details}
+                        </div>
+                        <button class="complete-btn" 
+                                onclick="completeMission('${missionId}')" 
+                                ${isCompleted ? 'disabled' : ''}>
+                            ${isCompleted ? '✅ MISSION ACCOMPLIE' : '🎯 COMPLÉTER LA MISSION'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateAchievements() {
+            const container = document.getElementById('achievements-list');
+            
+            container.innerHTML = playerData.achievements.map(achievement => `
+                <div class="achievement ${achievement.unlocked ? 'unlocked' : ''}">
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div>
+                        <div style="font-weight: 700; color: ${achievement.unlocked ? '#00ff88' : '#666'}; font-size: 0.9rem;">
+                            ${achievement.name}
+                        </div>
+                        <div style="font-size: 0.75rem; color: #999;">
+                            ${achievement.description}
+                            ${achievement.count !== undefined ? ` (${achievement.count}/${achievement.target})` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateDebugInfo() {
+            const container = document.getElementById('debug-info');
+            const totalMissions = Object.values(schedule).flat().length;
+            const completedCount = playerData.completedMissions.length;
+            
+            container.innerHTML = `
+                📊 Debug: ${completedCount}/${totalMissions} missions | 
+                Niveau ${playerData.level} | 
+                Streak: ${playerData.streak} jours<br>
+                📅 Aujourd'hui: ${today} | 
+                Selected: ${currentDate} | 
+                Missions today: ${schedule[currentDate]?.length || 0}
+            `;
+        }
+
+        function saveData() {
+            try {
+                if (typeof Storage !== "undefined" && localStorage) {
+                    localStorage.setItem('bac-quest-completed', JSON.stringify(playerData.completedMissions));
+                    localStorage.setItem('bac-quest-achievements', JSON.stringify(playerData.achievements));
+                    localStorage.setItem('bac-quest-streak', playerData.streak.toString());
+                    localStorage.setItem('bac-quest-last-date', playerData.lastCompletionDate);
+                }
+            } catch (e) {
+                console.log('Sauvegarde en mémoire seulement');
+                // Les données restent en mémoire pour cette session
+            }
+        }
+
+        // Initialisation
+        function init() {
+            // Charger les données sauvegardées
+            loadData();
+            
+            // Recalculer les stats au démarrage
+            let totalXp = 0;
+            for (const missionId of playerData.completedMissions) {
+                for (const date in schedule) {
+                    const mission = schedule[date].find(m => 
+                        `${m.title}-${m.time}-${date}` === missionId
+                    );
+                    if (mission) {
+                        totalXp += mission.xp;
+                        break;
+                    }
+                }
+            }
+            
+            // Recalculer niveau
+            playerData.level = 1;
+            playerData.xpNeeded = 100;
+            playerData.xp = totalXp;
+            
+            while (playerData.xp >= playerData.xpNeeded) {
+                playerData.xp -= playerData.xpNeeded;
+                playerData.level++;
+                playerData.xpNeeded = Math.floor(playerData.xpNeeded * 1.2);
+            }
+            
+            updateCountdown();
+            updateStats();
+            renderDateSelector();
+            renderMissions();
+            updateAchievements();
+            updateDebugInfo();
+            
+            // Mettre à jour le countdown chaque minute
+            setInterval(updateCountdown, 60000);
+            
+            // Mettre à jour debug info chaque 5 secondes
+            setInterval(updateDebugInfo, 5000);
+        }
+
+        // Démarrer l'application
+        init();
+    </script>
+</body>
+</html>
